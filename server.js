@@ -4,10 +4,12 @@ let tweets = [
   {
     id: "1",
     text: "first one",
+    userId: "2",
   },
   {
     id: "2",
     text: "second one",
+    userId: "1",
   },
 ];
 
@@ -27,9 +29,8 @@ let users = [
 const typeDefs = gql`
   type User {
     id: ID!
-    username: String!
     firstName: String!
-    lastName: String
+    lastName: String!
     fullName: String!
   }
   type Tweet {
@@ -44,7 +45,7 @@ const typeDefs = gql`
     ping: String!
   }
   type Mutation {
-    postTweet(text: String!, userId: ID!): Tweet!
+    postTweet(text: String!, userId: ID!): Tweet
     deleteTweet(id: ID!): Boolean!
   }
 `;
@@ -64,9 +65,13 @@ const resolvers = {
   },
   Mutation: {
     postTweet(_, { text, userId }) {
+      if (!users.find((user) => user.id === userId)) {
+        return;
+      }
       const newTweet = {
         id: tweets.length + 1,
         text,
+        userId,
       };
       tweets.push(newTweet);
       return newTweet;
@@ -81,6 +86,11 @@ const resolvers = {
   User: {
     fullName({ firstName, lastName }) {
       return `${firstName} ${lastName}`;
+    },
+  },
+  Tweet: {
+    author({ userId }) {
+      return users.find((user) => user.id === userId);
     },
   },
 };
